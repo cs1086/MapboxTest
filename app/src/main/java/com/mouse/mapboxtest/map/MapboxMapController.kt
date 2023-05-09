@@ -1,8 +1,10 @@
 package com.mouse.mapboxtest
 
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.appcompat.content.res.AppCompatResources
 import com.mapbox.bindgen.Expected
 import com.mapbox.bindgen.ExpectedFactory
 import com.mapbox.bindgen.None
@@ -10,6 +12,8 @@ import com.mapbox.geojson.Feature
 import com.mapbox.geojson.Point
 import com.mapbox.maps.*
 import com.mapbox.maps.extension.observable.eventdata.MapLoadingErrorEventData
+import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.interpolate
+import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.linear
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.*
 import com.mapbox.maps.extension.style.sources.addSource
@@ -17,14 +21,17 @@ import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.VectorSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.vectorSource
+import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.delegates.listeners.OnMapLoadErrorListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.addOnMapLongClickListener
+import com.mapbox.maps.plugin.gestures.gestures
+import com.mapbox.maps.plugin.locationcomponent.location
 
 private const val TAG = "MapboxMapController"
 
-class MapboxMapController(private val mapView: MapView) {
+class MapboxMapController(private val mapView: MapView,val context: Context) {
     /**
      * Init Block
      */
@@ -90,7 +97,7 @@ class MapboxMapController(private val mapView: MapView) {
 
         Log.d(TAG, "loadStyleUri: Controller")
         mapboxMap.loadStyleUri(
-            Style.LIGHT,
+            Style.OUTDOORS,
             styleTransitionOptions = TransitionOptions.Builder()
                 .duration(0)
                 .delay(0)
@@ -103,6 +110,10 @@ class MapboxMapController(private val mapView: MapView) {
                         it(sty)
                     }
                 }
+//                mapView.location.updateSettings {
+//                    enabled = true
+//                    pulsingEnabled = true
+//                }
             },
             onMapLoadErrorListener = object : OnMapLoadErrorListener {
                 override fun onMapLoadError(eventData: MapLoadingErrorEventData) {
@@ -111,6 +122,7 @@ class MapboxMapController(private val mapView: MapView) {
             }
         )
         Log.d(TAG, "loadStyleUri: Ended")
+
     }
 
     /**
@@ -131,6 +143,8 @@ class MapboxMapController(private val mapView: MapView) {
                             it(sty)
                         }
                     }
+                    initLocationComponent()
+//                    setupGesturesListener()
                 },
                 onMapLoadErrorListener = object : OnMapLoadErrorListener {
                     override fun onMapLoadError(eventData: MapLoadingErrorEventData) {
@@ -448,7 +462,42 @@ class MapboxMapController(private val mapView: MapView) {
     private fun suffixedLayerId(layerId: String, layerType: LayerType = LayerType.CIRCLE): String {
         return "${layerId}_${layerType.name.lowercase()}_layer"
     }
+    private fun initLocationComponent() {
+        val locationComponentPlugin = mapView.location
 
+        locationComponentPlugin.updateSettings {
+            this.enabled = true
+            this.locationPuck = LocationPuck2D(
+                bearingImage = AppCompatResources.getDrawable(
+                    context,
+                    R.drawable.android_robot,
+                ),
+                shadowImage = AppCompatResources.getDrawable(
+                    context,
+                    R.drawable.android_robot,
+                ),
+                scaleExpression = interpolate {
+                    linear()
+                    zoom()
+                    stop {
+                        literal(0.0)
+                        literal(0.6)
+                    }
+                    stop {
+                        literal(20.0)
+                        literal(1.0)
+                    }
+                }.toJson()
+            )
+        }
+        locationComponentPlugin.addOnIndicatorPositionChangedListener({
+            mapView.getMapboxMap().setCamera(CameraOptions.Builder().center(it).build())
+            mapView.gestures.focalPoint = mapView.getMapboxMap().pixelForCoordinate(it)
+        })
+        locationComponentPlugin.addOnIndicatorBearingChangedListener({
+            mapView.getMapboxMap().setCamera(CameraOptions.Builder().bearing(it).build())
+        })
+    }
 }
 
 private enum class LayerType {

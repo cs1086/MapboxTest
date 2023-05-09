@@ -42,7 +42,7 @@ fun MapboxMap(
                 .apply {
                     scalebar.enabled = showScale
                 }.also {
-                    onMapCreated(MapboxMapController(it))
+                    onMapCreated(MapboxMapController(it, context))
                 }.also {
                     initialCameraPosition?.let { position ->
                         it.getMapboxMap().flyTo(

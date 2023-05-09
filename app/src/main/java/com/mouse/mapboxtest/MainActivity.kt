@@ -1,5 +1,6 @@
 package com.mouse.mapboxtest
 
+import android.content.pm.Capability
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -16,10 +17,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.mouse.mapboxtest.ui.theme.MapboxTestTheme
 
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.style.expressions.dsl.generated.get
+import com.mapbox.maps.extension.style.expressions.dsl.generated.pow
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.*
+
 private const val LATITUDE = 60.239
 private const val LONGITUDE = 25.004
 private const val TAG = "MainActivity"
