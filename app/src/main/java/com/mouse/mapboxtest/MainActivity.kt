@@ -28,7 +28,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 
 private const val LATITUDE = 60.239
-private const val LONGITUDE = 25.005
+private const val LONGITUDE = 25.006
 private const val TAG = "MainActivity"
 @ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
