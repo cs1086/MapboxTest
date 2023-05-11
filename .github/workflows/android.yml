@@ -30,6 +30,9 @@ jobs:
     - name: Build and Test with Gradle
       run: ./gradlew build testDebug
       
+    - name: Run Android Tests
+      run: ./gradlew connectedCheck
+      
     - name: Run Lint
       run: ./gradlew lintDebug
       
