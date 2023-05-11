@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import androidx.paging.Pager
 import com.mouse.mapboxtest.ui.theme.MapboxTestTheme
 
 import com.mapbox.geojson.Point
@@ -57,12 +58,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Example() {
-    var text by remember {
-        mutableStateOf(0)
-    }
-    Text(text.toString(), modifier = Modifier.clickable {
-        text = (1..10).random()
-    })
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
