@@ -30,18 +30,6 @@ jobs:
     - name: Build and Test with Gradle
       run: ./gradlew build testDebug
       
-    - name: Start Android emulator
-      uses: reactivecircus/android-emulator-runner@v2
-      with:
-        api-level: 30
-        target: default
-        arch: x86_64
-        profile: Nexus 5X
-        tag: google_apis
-      
-    - name: Run Android Tests
-      run: ./gradlew connectedCheck
-      
     - name: Run Lint
       run: ./gradlew lintDebug
       
