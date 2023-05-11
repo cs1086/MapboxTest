@@ -31,14 +31,14 @@ jobs:
       run: ./gradlew build testDebug
       
     - name: Start Android emulator
-        uses: reactivecircus/android-emulator-runner@v3
-        with:
-          api-level: 30
-          architecture: x86
-          profile: Nexus 5
-          package: system-images;android-30;google_apis;x86
-          tag: google_apis
-          env: google_apis  
+      uses: reactivecircus/android-emulator-runner@v3
+      with:
+        api-level: 30
+        architecture: x86
+        profile: Nexus 5
+        package: system-images;android-30;google_apis;x86
+        tag: google_apis
+        env: google_apis  
       
     - name: Run Android Tests
       run: ./gradlew connectedCheck
