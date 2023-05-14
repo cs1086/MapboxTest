@@ -38,6 +38,15 @@ private const val TAG = "MainActivity"
 
 @ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
+    fun s(a: String) {
+        val name = if (true) {
+            "dsffds"
+        } else {
+            return
+        }
+        println(name)
+    }
+
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
         println("CoroutineExceptionHandler got $exception")
     }

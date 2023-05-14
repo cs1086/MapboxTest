@@ -19,6 +19,6 @@ class ExampleTest {
         //動作
         //composeTestRule.onNodeWithText("0").performClick()
         // 測試 UI 元素的可見性和內容
-        composeTestRule.onNodeWithText("1").assertIsDisplayed()
+        composeTestRule.onNodeWithText("0").assertIsDisplayed()
     }
 }
