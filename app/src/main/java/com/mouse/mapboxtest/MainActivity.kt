@@ -2,6 +2,11 @@ package com.mouse.mapboxtest
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -9,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,7 +53,13 @@ import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.CircleAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.PolygonAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createCircleAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.createPolygonAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
@@ -74,7 +86,7 @@ class MainActivity : ComponentActivity() {
             MapboxTestTheme {
                 // A surface container using the 'background' color from the theme
                 Column() {
-                    Example3()
+                    Example4()
 //                    MapBox()
                 }
             }
@@ -82,15 +94,115 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun Example5() {
+    
+}
+//簡單的放圖標(內建圓形、自定義圖示)、線、區塊在地圖上
+@Composable
+fun Example4() {
+    val context = LocalContext.current
+    val mapView = MapView(context)
+    LaunchedEffect(Unit){
+        mapView.getMapboxMap().setCamera(
+            CameraOptions.Builder()
+                .center(Point.fromLngLat(LONGITUDE, LATITUDE))
+                .zoom(14.0)
+                .build()
+        )
+    }
+    AndroidView(
+        factory = { mapView },
+        modifier = Modifier.fillMaxSize()
+    ) { mapView ->
 
+        mapView.getMapboxMap().loadStyleUri(
+            Style.MAPBOX_STREETS
+        ){
+//            addAnnotationToMap(context, mapView)//放一個自定義圖示，做得更仔細
+            //放一個自定義圖示的重點程式
+//            val annotationApi = mapView?.annotations
+//            val pointAnnotationManager = annotationApi?.createPointAnnotationManager(mapView)
+//// Set options for the resulting symbol layer.
+//            val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
+//                // Define a geographic coordinate.
+//                .withPoint(Point.fromLngLat(LONGITUDE, LATITUDE))
+//                // Specify the bitmap you assigned to the point annotation
+//                // The bitmap will be added to map style automatically.
+//                .withIconImage(AppCompatResources.getDrawable(context, R.drawable.android_robot)!!.toBitmap())
+//// Add the resulting pointAnnotation to the map.
+//            pointAnnotationManager?.create(pointAnnotationOptions)
+
+            //放一個圓形圖示
+//            val annotationApi = mapView?.annotations
+//            val circleAnnotationManager = annotationApi?.createCircleAnnotationManager(mapView)
+//// Set options for the resulting circle layer.
+//            val circleAnnotationOptions: CircleAnnotationOptions = CircleAnnotationOptions()
+//                // Define a geographic coordinate.
+//                .withPoint(Point.fromLngLat(LONGITUDE, LATITUDE))
+//                // Style the circle that will be added to the map.
+//                .withCircleRadius(8.0)
+//                .withCircleColor("#ee4e8b")
+//                .withCircleStrokeWidth(2.0)
+//                .withCircleStrokeColor("#ffffff")
+//// Add the resulting circle to the map.
+//            circleAnnotationManager?.create(circleAnnotationOptions)
+
+            //畫一條線在地圖上
+            // Create an instance of the Annotation API and get the polyline manager.
+
+//            val annotationApi = mapView?.annotations
+//            val polylineAnnotationManager = annotationApi?.createPolylineAnnotationManager(mapView)
+//// Define a list of geographic coordinates to be connected.
+//            val points = listOf(
+//                Point.fromLngLat(LONGITUDE, LATITUDE),
+//                Point.fromLngLat(LONGITUDE+0.01, LATITUDE+0.01)
+//            )
+//// Set options for the resulting line layer.
+//            val polylineAnnotationOptions: PolylineAnnotationOptions = PolylineAnnotationOptions()
+//                .withPoints(points)
+//                // Style the line that will be added to the map.
+//                .withLineColor("#ee4e8b")
+//                .withLineWidth(10.0)
+//// Add the resulting line to the map.
+//            polylineAnnotationManager?.create(polylineAnnotationOptions)
+
+            //畫一個區塊
+            // Create an instance of the Annotation API and get the polygon manager.
+            val annotationApi = mapView?.annotations
+            val polygonAnnotationManager = annotationApi?.createPolygonAnnotationManager(mapView)
+// Define a list of geographic coordinates to be connected.
+            val points = listOf(
+                listOf(
+                    Point.fromLngLat(LONGITUDE, LATITUDE+1),
+                    Point.fromLngLat(LONGITUDE, LATITUDE),
+
+                    Point.fromLngLat(LONGITUDE+1, LATITUDE),
+
+                    Point.fromLngLat(LONGITUDE+1, LATITUDE+1)
+                )
+            )
+// Set options for the resulting fill layer.
+            val polygonAnnotationOptions: PolygonAnnotationOptions = PolygonAnnotationOptions()
+                .withPoints(points)
+                // Style the polygon that will be added to the map.
+                .withFillColor("#ee4e8b")
+                .withFillOpacity(0.4)
+// Add the resulting polygon to the map.
+            polygonAnnotationManager?.create(polygonAnnotationOptions)
+        }
+
+    }
+}
+
+//打開定位權限並且在當前位置上放上水波紋圖示
 @Composable
 fun Example3() {
-
     val context = LocalContext.current
     val mapView = MapView(context)
     val locationPermissionHelper = LocationPermissionHelper(WeakReference(context as Activity))
     val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
-        println("####OnIndicatorBearingChangedListener")
+//        println("####OnIndicatorBearingChangedListener")
         mapView.getMapboxMap().setCamera(CameraOptions.Builder().bearing(it).build())
     }
 
@@ -134,8 +246,14 @@ fun Example3() {
         contract = ActivityResultContracts.RequestPermission(),
     ) { isGranted: Boolean ->
         println("####rememberLauncherForActivityResult.isGranted=$isGranted")
-        if(isGranted){
-            println("####locationPermissionHelper.checkPermissions")
+        hasPermission = isGranted
+    }
+    LaunchedEffect(key1 = hasPermission, block = {
+        if (!hasPermission) {
+            println("####LaunchedEffect.if")
+            permissionRequester.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+        } else {
+            println("####LaunchedEffect.else")
 
             mapView.getMapboxMap().setCamera(
                 CameraOptions.Builder()
@@ -146,10 +264,10 @@ fun Example3() {
                 Style.MAPBOX_STREETS
             ) {
                 //initLocationComponent()
-                val locationComponentPlugin = mapView.location//取的湯前座標
+                val locationComponentPlugin = mapView.location//取的當前座標
                 locationComponentPlugin.updateSettings {
                     this.enabled = true//沒給就不能定位現在的位置
-//                    pulsingEnabled = true//會一直出現水波紋動畫
+                    pulsingEnabled = true//會一直出現水波紋動畫
                     //要不要使用自定義圖標，否則就是預設的藍色白框圓點
                     this.locationPuck = LocationPuck2D(
                         //主要圖示
@@ -189,12 +307,6 @@ fun Example3() {
                 //監聽地圖手勢移動事件
                 mapView.gestures.addOnMoveListener(onMoveListener)
             }
-        }
-        hasPermission = isGranted
-    }
-    LaunchedEffect(key1 = Unit, block = {
-        if(!hasPermission){
-            permissionRequester.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
         }
 //        locationPermissionHelper.checkPermissions {
 //
@@ -486,31 +598,31 @@ fun MapBox() {
     }
 }
 
-//@Composable
-//private fun MapboxMap() {
-//    val mapView = mapView()
-//    AndroidView(
-//        factory = { mapView },
-//        modifier = Modifier.fillMaxSize()
-//    ) { mapView ->
-//        mapView.getMapboxMap()
-//            .apply {
-//                loadStyleUri(Style.MAPBOX_STREETS)
-//                setCamera(
-//                    CameraOptions.Builder()
-//                        .center(Point.fromLngLat(LONGITUDE, LATITUDE))
-//                        .zoom(9.0)
-//                        .build()
-//                )
-//            }
-//    }
-//}
-//
-//@Composable
-//private fun mapView(): MapView {
-//    val context = LocalContext.current
-//    return MapView(context)
-//}
+@Composable
+private fun MapboxMap() {
+    val mapView = mapView()
+    AndroidView(
+        factory = { mapView },
+        modifier = Modifier.fillMaxSize()
+    ) { mapView ->
+        mapView.getMapboxMap()
+            .apply {
+                loadStyleUri(Style.MAPBOX_STREETS)
+                setCamera(
+                    CameraOptions.Builder()
+                        .center(Point.fromLngLat(LONGITUDE, LATITUDE))
+                        .zoom(9.0)
+                        .build()
+                )
+            }
+    }
+}
+
+@Composable
+private fun mapView(): MapView {
+    val context = LocalContext.current
+    return MapView(context)
+}
 //
 //@Preview(showBackground = true)
 //@Composable
@@ -519,3 +631,46 @@ fun MapBox() {
 //        MapboxMap()
 //    }
 //}
+private fun addAnnotationToMap(context: Context, mapView: MapView) {
+// Create an instance of the Annotation API and get the PointAnnotationManager.
+    bitmapFromDrawableRes(
+        context,
+        R.drawable.android_robot
+    )?.let {
+        val annotationApi = mapView?.annotations
+        val pointAnnotationManager = annotationApi?.createPointAnnotationManager(mapView!!)
+// Set options for the resulting symbol layer.
+        val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
+// Define a geographic coordinate.
+            .withPoint(Point.fromLngLat(LONGITUDE, LATITUDE))
+// Specify the bitmap you assigned to the point annotation
+// The bitmap will be added to map style automatically.
+            .withIconImage(it)
+// Add the resulting pointAnnotation to the map.
+        pointAnnotationManager?.create(pointAnnotationOptions)
+    }
+}
+
+private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =
+    convertDrawableToBitmap(AppCompatResources.getDrawable(context, resourceId))
+
+private fun convertDrawableToBitmap(sourceDrawable: Drawable?): Bitmap? {
+    if (sourceDrawable == null) {
+        return null
+    }
+    return if (sourceDrawable is BitmapDrawable) {
+        sourceDrawable.bitmap
+    } else {
+// copying drawable object to not manipulate on the same reference
+        val constantState = sourceDrawable.constantState ?: return null
+        val drawable = constantState.newDrawable().mutate()
+        val bitmap: Bitmap = Bitmap.createBitmap(
+            drawable.intrinsicWidth, drawable.intrinsicHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        bitmap
+    }
+}
