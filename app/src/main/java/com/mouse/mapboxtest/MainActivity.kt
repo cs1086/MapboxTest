@@ -40,12 +40,14 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.Style
+import com.mapbox.maps.ViewAnnotationAnchor
 import com.mapbox.maps.extension.style.expressions.dsl.generated.get
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.LineLayer
 import com.mapbox.maps.extension.style.layers.generated.SymbolLayer
 import com.mapbox.maps.extension.style.layers.generated.lineLayer
+import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.extension.style.sources.addSource
@@ -54,6 +56,7 @@ import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.CircleAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.PolygonAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
@@ -67,6 +70,8 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.viewannotation.viewAnnotationOptions
+import com.mouse.mapboxtest.databinding.TextLayoutBinding
 import com.mouse.mapboxtest.ui.theme.MapboxTestTheme
 import com.mouse.mapboxtest.util.LocationPermissionHelper
 import kotlinx.coroutines.*
@@ -86,7 +91,7 @@ class MainActivity : ComponentActivity() {
             MapboxTestTheme {
                 // A surface container using the 'background' color from the theme
                 Column() {
-                    Example4()
+                    Example5()
 //                    MapBox()
                 }
             }
@@ -94,9 +99,88 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+//在地圖上點擊某個座標並加入標籤文字並且可以控制標籤文字的高寬
 @Composable
 fun Example5() {
-    
+    val context = LocalContext.current
+    val mapView = MapView(context)
+    LaunchedEffect(Unit){
+        mapView.getMapboxMap().setCamera(
+            CameraOptions.Builder()
+                .center(Point.fromLngLat(LONGITUDE, LATITUDE))
+                .zoom(14.0)
+                .build()
+        )
+    }
+    AndroidView(
+        factory = { mapView },
+        modifier = Modifier.fillMaxSize()
+    ) { mapView ->
+        val center = mapView.getMapboxMap().cameraState.center//取得地圖中心點
+        val viewAnnotationManager = mapView.viewAnnotationManager
+        mapView.getMapboxMap().apply{loadStyleUri(
+            Style.MAPBOX_STREETS
+        ){
+            this.addOnMapClickListener{
+                println("####我被點擊了,points=$it")
+                lateinit var pointAnnotation: PointAnnotation
+                val annotationPlugin = mapView.annotations
+                val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
+                    .withPoint(it)
+                    .withIconImage(AppCompatResources.getDrawable(context, R.drawable.android_robot)!!.toBitmap())
+                    .withIconAnchor(IconAnchor.BOTTOM)
+                    .withDraggable(true)
+                val pointAnnotationManager = annotationPlugin.createPointAnnotationManager()
+                pointAnnotation = pointAnnotationManager.create(pointAnnotationOptions)
+                val viewAnnotation = viewAnnotationManager.addViewAnnotation(
+                    // Specify the layout resource id
+                    resId = R.layout.text_layout,//綁定畫面
+                    // Set any view annotation options
+                    options = viewAnnotationOptions {
+                        geometry(it)
+                        associatedFeatureId(pointAnnotation.featureIdentifier)//順便綁定圖示一起被加入
+                        anchor(ViewAnnotationAnchor.BOTTOM)//放在自定義標籤的哪個位置
+                        width(100)
+                        height(200)
+                        allowOverlap(true)//允許覆蓋
+//                        selected(true)//不知道有何用
+                        visible(true)//是否可見
+                        // move view annotation to the right on 10 pixels
+                        //offsetX(100)//x軸偏移量
+                        // move view annotation to the bottom on 20 pixels
+                        //offsetY(-20)//y軸偏移量
+                    }
+                )
+                //想要使用TextLayoutBinding
+                // 需要在gradle打開viewBinding = true
+                //layout的屬性要有xmlns:android="http://schemas.android.com/apk/res/android"
+                //rebuild會自行新增一個對應layout的物件
+                //更改layout元件資訊
+                TextLayoutBinding.bind(viewAnnotation).apply {
+                    this.myText.text="鼠你好"
+                }
+                true
+            }
+
+            //加入一個標籤
+
+            //針對某個已經加入的做改變
+//            viewAnnotationManager.updateViewAnnotation(
+//                viewAnnotation,
+//                viewAnnotationOptions {
+//                    width(100)
+//                    height(200)
+//                    visible(true)//是否可見
+//                    // move view annotation to the right on 10 pixels
+//                    offsetX(100)//x軸偏移量
+//                    // move view annotation to the bottom on 20 pixels
+//                    offsetY(-20)//y軸偏移量
+//                }
+//            )
+
+        }
+        }
+    }
 }
 //簡單的放圖標(內建圓形、自定義圖示)、線、區塊在地圖上
 @Composable
@@ -120,18 +204,19 @@ fun Example4() {
             Style.MAPBOX_STREETS
         ){
 //            addAnnotationToMap(context, mapView)//放一個自定義圖示，做得更仔細
-            //放一個自定義圖示的重點程式
-//            val annotationApi = mapView?.annotations
-//            val pointAnnotationManager = annotationApi?.createPointAnnotationManager(mapView)
-//// Set options for the resulting symbol layer.
-//            val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
-//                // Define a geographic coordinate.
-//                .withPoint(Point.fromLngLat(LONGITUDE, LATITUDE))
-//                // Specify the bitmap you assigned to the point annotation
-//                // The bitmap will be added to map style automatically.
-//                .withIconImage(AppCompatResources.getDrawable(context, R.drawable.android_robot)!!.toBitmap())
-//// Add the resulting pointAnnotation to the map.
-//            pointAnnotationManager?.create(pointAnnotationOptions)
+//            放一個自定義圖示的重點程式
+            val annotationApi = mapView?.annotations
+            val pointAnnotationManager = annotationApi?.createPointAnnotationManager(mapView)
+// Set options for the resulting symbol layer.
+            val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
+                // Define a geographic coordinate.
+                .withPoint(Point.fromLngLat(LONGITUDE, LATITUDE))
+                .withDraggable(true)//能不能拉著圖示移動
+                // Specify the bitmap you assigned to the point annotation
+                // The bitmap will be added to map style automatically.
+                .withIconImage(AppCompatResources.getDrawable(context, R.drawable.android_robot)!!.toBitmap())
+// Add the resulting pointAnnotation to the map.
+            pointAnnotationManager?.create(pointAnnotationOptions)
 
             //放一個圓形圖示
 //            val annotationApi = mapView?.annotations
@@ -169,27 +254,27 @@ fun Example4() {
 
             //畫一個區塊
             // Create an instance of the Annotation API and get the polygon manager.
-            val annotationApi = mapView?.annotations
-            val polygonAnnotationManager = annotationApi?.createPolygonAnnotationManager(mapView)
-// Define a list of geographic coordinates to be connected.
-            val points = listOf(
-                listOf(
-                    Point.fromLngLat(LONGITUDE, LATITUDE+1),
-                    Point.fromLngLat(LONGITUDE, LATITUDE),
-
-                    Point.fromLngLat(LONGITUDE+1, LATITUDE),
-
-                    Point.fromLngLat(LONGITUDE+1, LATITUDE+1)
-                )
-            )
-// Set options for the resulting fill layer.
-            val polygonAnnotationOptions: PolygonAnnotationOptions = PolygonAnnotationOptions()
-                .withPoints(points)
-                // Style the polygon that will be added to the map.
-                .withFillColor("#ee4e8b")
-                .withFillOpacity(0.4)
-// Add the resulting polygon to the map.
-            polygonAnnotationManager?.create(polygonAnnotationOptions)
+//            val annotationApi = mapView?.annotations
+//            val polygonAnnotationManager = annotationApi?.createPolygonAnnotationManager(mapView)
+//// Define a list of geographic coordinates to be connected.
+//            val points = listOf(
+//                listOf(
+//                    Point.fromLngLat(LONGITUDE, LATITUDE+1),
+//                    Point.fromLngLat(LONGITUDE, LATITUDE),
+//
+//                    Point.fromLngLat(LONGITUDE+1, LATITUDE),
+//
+//                    Point.fromLngLat(LONGITUDE+1, LATITUDE+1)
+//                )
+//            )
+//// Set options for the resulting fill layer.
+//            val polygonAnnotationOptions: PolygonAnnotationOptions = PolygonAnnotationOptions()
+//                .withPoints(points)
+//                // Style the polygon that will be added to the map.
+//                .withFillColor("#ee4e8b")
+//                .withFillOpacity(0.4)
+//// Add the resulting polygon to the map.
+//            polygonAnnotationManager?.create(polygonAnnotationOptions)
         }
 
     }
