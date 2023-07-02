@@ -71,5 +71,6 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
     //mapbox
     implementation 'com.mapbox.maps:android:10.13.0'
+    implementation("com.mapbox.navigation:android:2.13.2")
     implementation("com.google.android.gms:play-services-location:21.0.1")
 }
