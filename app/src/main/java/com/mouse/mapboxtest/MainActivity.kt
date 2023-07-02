@@ -286,7 +286,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 //        navigationCamera.requestNavigationCameraToOverview()
-        navigationCamera.requestNavigationCameraToFollowing()
+//        navigationCamera.requestNavigationCameraToFollowing()
         setContent {
             MapboxTestTheme {
                 // A surface container using the 'background' color from the theme
@@ -321,9 +321,10 @@ class MainActivity : ComponentActivity() {
     private fun replayOriginLocation() {
         mapboxReplayer.pushEvents(
             listOf(
-                ReplayRouteMapper.mapToUpdateLocation(
+                ReplayRouteMapper.mapToUpdateLocation(//預設點位，這邊可以抓自己定位
                     Date().time.toDouble(),
-                    Point.fromLngLat(-122.39726512303575, 37.785128345296805)
+                    //Point.fromLngLat(-122.39726512303575, 37.785128345296805)
+                    Point.fromLngLat(120.66413886354937,24.159783111900826)
                 )
             )
         )
